@@ -41,7 +41,7 @@ const validateEnvironment = () => {
   logger.info('Environment validation passed');
 };
 
-// Initialize app
+// Initialize app 
 const app = express();
 const server = createServer(app);
 
