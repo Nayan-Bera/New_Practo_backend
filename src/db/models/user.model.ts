@@ -60,9 +60,8 @@ const userSchema = new Schema<IUser>({
   timestamps: true,
   toJSON: {
     transform: (_doc, ret) => {
-      delete ret.encry_password;
-      delete ret.salt;
-      return ret;
+      const { encry_password, salt, ...rest } = ret;
+      return rest;
     }
   }
 });
