@@ -49,7 +49,7 @@ export const isHost = (
   res: Response,
   next: NextFunction
 ): void | Response => {
-  if (req.user?.type !== 'host') {
+  if (req.user?.type !== 'admin') {
     return res.status(403).json({
       error: 'Access denied. Only hosts can perform this action.'
     });

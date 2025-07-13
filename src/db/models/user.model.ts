@@ -6,7 +6,7 @@ export interface IUser extends Document {
   email: string;
   encry_password: string;
   salt: string;
-  type: 'host' | 'candidate';
+  type: 'admin' | 'candidate';
   upcomingExams: mongoose.Types.ObjectId[];
   pastExams: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -43,7 +43,7 @@ const userSchema = new Schema<IUser>({
   type: {
     type: String,
     enum: {
-      values: ['host', 'candidate'],
+      values: ['admin', 'candidate'],
       message: '{VALUE} is not a valid user type'
     },
     required: [true, 'User type is required']

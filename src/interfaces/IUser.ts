@@ -5,7 +5,7 @@ export interface IUser extends Document {
   email: string;
   encry_password: string;
   salt: string;
-  type: 'host' | 'candidate';
+  type: 'admin' | 'candidate';
   upcomingExams: Types.ObjectId[];
   pastExams: Types.ObjectId[];
   createdAt: Date;
