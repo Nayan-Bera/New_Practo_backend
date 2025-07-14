@@ -46,7 +46,7 @@ const candidateSchema = new Schema<ICandidate>({
 const examSchema = new Schema<IExam>({
   title: { type: String, required: true, trim: true, maxlength: 100 },
   description: { type: String, trim: true, maxlength: 500 },
-  host: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  admin: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   startTime: { type: Date, required: true },
   duration: { type: Number, required: true, min: 5, max: 180 },
   questions: [questionSchema],
@@ -125,7 +125,7 @@ examSchema.methods.recordReconnection = function(userId: string) {
 
 // Indexes
 examSchema.index({ startTime: 1, status: 1 });
-examSchema.index({ host: 1 });
+examSchema.index({ admin: 1 });
 examSchema.index({ 'candidates.user': 1 });
 
 export default mongoose.model<IExam>('Exam', examSchema);

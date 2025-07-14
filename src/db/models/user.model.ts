@@ -6,11 +6,18 @@ export interface IUser extends Document {
   email: string;
   encry_password: string;
   salt: string;
-  type: 'admin' | 'candidate';
+  type: 'superadmin' | 'admin' | 'candidate';
+  education: string;
+  college: string;
+  university: string;
+  department: string;
+  course: string;
+  designation: string;
   upcomingExams: mongoose.Types.ObjectId[];
   pastExams: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
+  isApproved: boolean;
   authenticate(plainPassword: string): boolean;
   securePassword(plainPassword: string): string;
 }
@@ -43,10 +50,44 @@ const userSchema = new Schema<IUser>({
   type: {
     type: String,
     enum: {
-      values: ['admin', 'candidate'],
+      values: ['superadmin', 'admin', 'candidate'],
       message: '{VALUE} is not a valid user type'
     },
     required: [true, 'User type is required']
+  },
+  isApproved: {
+    type: Boolean,
+    default: function(this: any) { return this.type !== 'admin'; },
+  },
+  education: {
+    type: String,
+    required: function(this: any) { return this.type === 'candidate'; },
+    trim: true
+  },
+  college: {
+    type: String,
+    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    trim: true
+  },
+  university: {
+    type: String,
+    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    trim: true
+  },
+  department: {
+    type: String,
+    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    trim: true
+  },
+  course: {
+    type: String,
+    required: function(this: any) { return this.type === 'candidate'; },
+    trim: true
+  },
+  designation: {
+    type: String,
+    required: function(this: any) { return this.type === 'admin'; },
+    trim: true
   },
   upcomingExams: [{
     type: Schema.Types.ObjectId,

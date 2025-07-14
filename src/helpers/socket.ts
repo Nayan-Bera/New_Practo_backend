@@ -2,7 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 interface UserPayload {
   _id: string;
-  type: 'host' | 'candidate';
+  type: 'admin' | 'candidate';
 }
 
 interface JoinPayload {
@@ -28,7 +28,7 @@ interface CandidateData {
 }
 
 interface ExamMonitoring {
-  host: string | null;
+  admin: string | null;
   candidates: Map<string, CandidateData>;
   warnings: Map<string, number>;
 }
@@ -61,7 +61,7 @@ const SocketHelper = (io: Server): void => {
       // Initialize exam monitoring if not exists
       if (!examMonitoring[payload.examid]) {
         examMonitoring[payload.examid] = {
-          host: null,
+          admin: null,
           candidates: new Map(),
           warnings: new Map(),
         };
@@ -89,10 +89,10 @@ const SocketHelper = (io: Server): void => {
 
       socketRoomidMap[socket.id] = payload.examid;
 
-      // Track candidate or host
-      if (payload.user.type === 'host') {
-        examMonitoring[payload.examid].host = socket.id;
-        let x = clients[payload.examid].filter((v) => v.user.type !== 'host');
+      // Track candidate or admin
+      if (payload.user.type === 'admin') {
+        examMonitoring[payload.examid].admin = socket.id;
+        let x = clients[payload.examid].filter((v) => v.user.type !== 'admin');
         io.to(socket.id).emit('user_list', x);
       } else {
         examMonitoring[payload.examid].candidates.set(socket.id, {
@@ -130,7 +130,7 @@ const SocketHelper = (io: Server): void => {
       const examId = socketRoomidMap[socket.id];
       const monitoring = examMonitoring[examId];
       
-      if (monitoring && monitoring.host === socket.id) {
+      if (monitoring && monitoring.admin === socket.id) {
         const candidateData = monitoring.candidates.get(payload.to);
         if (candidateData) {
           candidateData.warnings += 1;
@@ -142,9 +142,9 @@ const SocketHelper = (io: Server): void => {
             warningCount: candidateData.warnings,
           });
 
-          // If warnings exceed threshold, notify host
+          // If warnings exceed threshold, notify admin
           if (candidateData.warnings >= 3) {
-            io.to(monitoring.host).emit('excessive_warnings', {
+            io.to(monitoring.admin).emit('excessive_warnings', {
               candidateId: candidateData.userId,
               warningCount: candidateData.warnings,
             });
@@ -166,7 +166,7 @@ const SocketHelper = (io: Server): void => {
             // Clean up monitoring data
             const examId = socketRoomidMap[socket.id];
             if (examMonitoring[examId]) {
-              if (examMonitoring[examId].host === socket.id) {
+              if (examMonitoring[examId].admin === socket.id) {
                 delete examMonitoring[examId];
               } else {
                 examMonitoring[examId].candidates.delete(socket.id);

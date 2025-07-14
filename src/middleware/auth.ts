@@ -44,17 +44,17 @@ export const isAuthenticated = async (
 // Alias isAuthenticated as isSignedIn for backward compatibility
 export const isSignedIn = isAuthenticated;
 
-export const isHost = (
+export const isAdmin = (
   req: IRequest,
   res: Response,
   next: NextFunction
-): void | Response => {
-  if (req.user?.type !== 'admin') {
-    return res.status(403).json({
-      error: 'Access denied. Only hosts can perform this action.'
-    });
+) => {
+  if (req.user && req.user.type === 'admin') {
+    return next();
   }
-  next();
+  return res.status(403).json({
+    error: 'Access denied. Only admins can perform this action.'
+  });
 };
 
 export const isCandidate = (
@@ -68,4 +68,17 @@ export const isCandidate = (
     });
   }
   next();
+};
+
+export const isSuperAdmin = (
+  req: IRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (req.user && req.user.type === 'superadmin') {
+    return next();
+  }
+  return res.status(403).json({
+    error: 'Access denied. Only super admins can perform this action.'
+  });
 }; 

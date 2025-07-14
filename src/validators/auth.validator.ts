@@ -26,7 +26,7 @@ export const signupValidator = [
   body('type')
     .notEmpty()
     .withMessage('User type is required')
-    .isIn(['host', 'candidate'])
+    .isIn(['admin', 'candidate'])
     .withMessage('Invalid user type'),
 ];
 

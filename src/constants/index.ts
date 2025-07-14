@@ -41,4 +41,6 @@ export const ERROR_MESSAGES = {
     CONNECTION_LOST: 'Video connection lost',
     TOO_MANY_DISCONNECTIONS: 'Too many video disconnections',
   },
-}; 
+};
+
+export const USER_ROLE_SUPERADMIN = 'superadmin'; 

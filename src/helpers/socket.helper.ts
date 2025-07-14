@@ -10,7 +10,7 @@ import { VideoMonitoringService, IVideoAnalysisData } from './video.helper';
 
 interface ISocketUser {
   _id: string;
-  type: 'host' | 'candidate';
+  type: 'admin' | 'candidate';
 }
 
 interface IVideoEvent {
@@ -119,10 +119,10 @@ export class SocketService {
         }
 
         const user = socket.data.user as ISocketUser;
-        const isHost = String(exam.host) === String(user._id);
+        const isAdmin = String(exam.admin) === String(user._id);
         const isCandidate = exam.candidates.some(c => String(c.user) === String(user._id));
 
-        if (!isHost && !isCandidate) {
+        if (!isAdmin && !isCandidate) {
           socket.emit('error', { message: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED });
           return;
         }
@@ -148,9 +148,9 @@ export class SocketService {
           videoState: isCandidate ? this.videoStates.get(user._id) : undefined
         });
 
-        // Emit user_list to host for monitoring dashboard
-        if (isHost) {
-          this.emitUserListToHost(examId, user._id);
+        // Emit user_list to admin for monitoring dashboard
+        if (isAdmin) {
+          this.emitUserListToAdmin(examId, user._id);
         }
       } catch (error) {
         logger.error('Join exam error:', error);
@@ -159,8 +159,8 @@ export class SocketService {
     };
   }
 
-  // Helper method to emit user_list to host
-  private emitUserListToHost(examId: string, hostId: string): void {
+  // Helper method to emit user_list to admin
+  private emitUserListToAdmin(examId: string, adminId: string): void {
     const exam = this.examRooms.get(examId);
     if (!exam) return;
 
@@ -176,8 +176,8 @@ export class SocketService {
       return null;
     }).filter(Boolean);
 
-    // Emit to host
-    this.io.to(hostId).emit('user_list', candidates);
+    // Emit to admin
+    this.io.to(adminId).emit('user_list', candidates);
   }
 
   // Helper method to get user data by socket ID
@@ -193,16 +193,16 @@ export class SocketService {
       try {
         const user = socket.data.user as ISocketUser;
         const exam = await Exam.findById(examId) as IExam;
-        const isHost = exam ? String(exam.host) === String(user._id) : false;
+        const isAdmin = exam ? String(exam.admin) === String(user._id) : false;
         
         socket.leave(examId);
         this.examRooms.get(examId)?.delete(socket.id);
         this.videoStates.delete(user._id);
         this.io.to(examId).emit('userLeft', { userId: user._id });
 
-        // Emit updated user_list to host if a candidate left
-        if (!isHost && exam) {
-          this.emitUserListToHost(examId, exam.host.toString());
+        // Emit updated user_list to admin if a candidate left
+        if (!isAdmin && exam) {
+          this.emitUserListToAdmin(examId, exam.admin.toString());
         }
       } catch (error) {
         logger.error('Leave exam error:', error);
@@ -290,7 +290,7 @@ export class SocketService {
         const sender = socket.data.user as ISocketUser;
         const exam = await Exam.findById(examId) as IExam;
         
-        if (!exam || String(exam.host) !== String(sender._id)) {
+        if (!exam || String(exam.admin) !== String(sender._id)) {
           socket.emit('error', { message: 'Not authorized to send warnings' });
           return;
         }
@@ -365,10 +365,10 @@ export class SocketService {
               timestamp: new Date()
             });
 
-            // Emit updated user_list to host
-            const isHost = String(exam.host) === String(userId);
-            if (!isHost) {
-              this.emitUserListToHost(examId, exam.host.toString());
+            // Emit updated user_list to admin
+            const isAdmin = String(exam.admin) === String(userId);
+            if (!isAdmin) {
+              this.emitUserListToAdmin(examId, exam.admin.toString());
             }
           }
         }
@@ -483,10 +483,10 @@ export class SocketService {
         }
 
         const user = socket.data.user as ISocketUser;
-        const isHost = String(exam.host) === String(user._id);
+        const isAdmin = String(exam.admin) === String(user._id);
         const isCandidate = exam.candidates.some(c => String(c.user) === String(user._id));
 
-        if (!isHost && !isCandidate) {
+        if (!isAdmin && !isCandidate) {
           socket.emit('error', { message: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED });
           return;
         }
@@ -505,8 +505,8 @@ export class SocketService {
           });
         }
 
-        // Emit user_list to host (legacy behavior)
-        if (isHost) {
+        // Emit user_list to admin (legacy behavior)
+        if (isAdmin) {
           const candidates = exam.candidates.filter(c => c.user.toString() !== user._id);
           socket.emit('user_list', candidates.map(c => ({
             socketid: c.user.toString(),
@@ -580,7 +580,7 @@ export class SocketService {
         }
 
         const exam = await Exam.findById(examId) as IExam;
-        if (!exam || String(exam.host) !== String(sender._id)) {
+        if (!exam || String(exam.admin) !== String(sender._id)) {
           socket.emit('error', { message: 'Not authorized to send warnings' });
           return;
         }
@@ -644,7 +644,7 @@ export class SocketService {
         const suspiciousActivity = await VideoMonitoringService.checkForSuspiciousActivity(user._id);
         
         if (suspiciousActivity.isSuspicious) {
-          // Notify host about suspicious activity
+          // Notify admin about suspicious activity
           const exam = await Exam.findById(data.examId) as IExam;
           if (exam) {
             this.io.to(data.examId).emit('suspiciousActivityDetected', {

@@ -54,7 +54,7 @@ export interface IExamSettings {
 export interface IExam extends Document {
   title: string;
   description?: string;
-  host: Types.ObjectId;
+  admin: Types.ObjectId;
   startTime: Date;
   duration: number;
   questions: IQuestion[];

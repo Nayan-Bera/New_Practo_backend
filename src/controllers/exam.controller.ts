@@ -7,6 +7,7 @@ import User from '../db/models/user.model';
 import { ERROR_MESSAGES } from '../constants';
 import { Document, Types } from 'mongoose';
 import { VideoMonitoringService } from '../helpers/video.helper';
+import { isCandidateProfileComplete } from './user.controller';
 
 type ExamDocument = Document<unknown, Record<string, never>, IExam> & IExam;
 
@@ -46,10 +47,10 @@ export const getExam = async (
     }
 
     const user = req.user;
-    const isHost = String(exam.host) === String(user?._id);
+    const isAdmin = String(exam.admin) === String(user?._id);
     const isCandidate = exam.candidates.some(c => String(c.user) === String(user?._id));
 
-    if (!isHost && !isCandidate) {
+    if (!isAdmin && !isCandidate) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -92,7 +93,7 @@ export const createExam = async (
 
     const exam = new Exam({
       ...examData,
-      host: req.user?._id
+      admin: req.user?._id
     });
 
     await exam.save();
@@ -126,7 +127,7 @@ export const updateExam = async (
       });
     }
 
-    if (String(exam.host) !== String(req.user?._id)) {
+    if (String(exam.admin) !== String(req.user?._id)) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -170,7 +171,7 @@ export const deleteExam = async (
       });
     }
 
-    if (String(exam.host) !== String(req.user?._id)) {
+    if (String(exam.admin) !== String(req.user?._id)) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -204,6 +205,13 @@ export const joinExam = async (
     if (!exam) {
       return res.status(404).json({
         error: ERROR_MESSAGES.EXAM.NOT_FOUND
+      });
+    }
+
+    // Check candidate profile completeness
+    if (!isCandidateProfileComplete(req.user as any)) {
+      return res.status(400).json({
+        error: 'Please complete your profile (education, college, university, department, course) before joining the exam.'
       });
     }
 
@@ -391,7 +399,7 @@ export const addQuestion = async (
       });
     }
 
-    if (String(exam.host) !== String(req.user?._id)) {
+    if (String(exam.admin) !== String(req.user?._id)) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -457,7 +465,7 @@ export const updateQuestion = async (
       });
     }
 
-    if (String(exam.host) !== String(req.user?._id)) {
+    if (String(exam.admin) !== String(req.user?._id)) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -530,7 +538,7 @@ export const deleteQuestion = async (
       });
     }
 
-    if (String(exam.host) !== String(req.user?._id)) {
+    if (String(exam.admin) !== String(req.user?._id)) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -578,10 +586,10 @@ export const getQuestions = async (
     }
 
     const user = req.user;
-    const isHost = String(exam.host) === String(user?._id);
+    const isAdmin = String(exam.admin) === String(user?._id);
     const isCandidate = exam.candidates.some(c => String(c.user) === String(user?._id));
 
-    if (!isHost && !isCandidate) {
+    if (!isAdmin && !isCandidate) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });
@@ -785,9 +793,9 @@ export const getAntiCheatingReport = async (
     }
 
     const user = req.user;
-    const isHost = String(exam.host) === String(user?._id);
+    const isAdmin = String(exam.admin) === String(user?._id);
 
-    if (!isHost) {
+    if (!isAdmin) {
       return res.status(403).json({
         error: ERROR_MESSAGES.EXAM.NOT_AUTHORIZED
       });

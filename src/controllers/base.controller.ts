@@ -51,7 +51,7 @@ export abstract class BaseController<T extends Document> {
   protected async validateOwnership(
     req: IRequest,
     id: string,
-    ownerField: string = 'host'
+    ownerField: string = 'admin'
   ): Promise<{ isValid: boolean; doc: T | null }> {
     try {
       const doc = await this.model.findById(id);

@@ -81,13 +81,13 @@ class AnswerController extends BaseController<IExam> {
         return this.sendError(res, 'Exam not found', 404);
       }
 
-      // Check if user is authorized (either host or the candidate)
-      if (exam.host.toString() !== userId && !exam.candidates.some(c => c.user.toString() === userId?.toString())) {
+      // Check if user is authorized (either admin or the candidate)
+      if (exam.admin.toString() !== userId && !exam.candidates.some(c => c.user.toString() === userId?.toString())) {
         return this.sendError(res, 'Not authorized to view answers', 403);
       }
 
       // If user is candidate, return only their answers
-      const answers = exam.host.toString() === userId
+      const answers = exam.admin.toString() === userId
         ? exam.answers
         : exam.answers?.filter(a => a.candidateId.toString() === userId?.toString());
 
@@ -113,7 +113,7 @@ class AnswerController extends BaseController<IExam> {
       }
 
       // Check if user is authorized
-      if (exam.host.toString() !== userId?.toString() && 
+      if (exam.admin.toString() !== userId?.toString() && 
           !exam.candidates.some(c => c.user.toString() === userId?.toString())) {
         return this.sendError(res, 'Not authorized to view results', 403);
       }
