@@ -19,4 +19,12 @@ export interface IUser extends Document {
   isApproved: boolean;
   authenticate(plainpassword: string): boolean;
   securePassword(plainpassword: string): string;
+  educationHistory: Array<{
+    degree: string;
+    college: string;
+    university: string;
+    department: string;
+    startYear: number;
+    endYear?: number;
+  }>;
 } 

@@ -13,6 +13,7 @@ export interface IUser extends Document {
   department: string;
   course: string;
   designation: string;
+  profilePicture?: string;
   upcomingExams: mongoose.Types.ObjectId[];
   pastExams: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -20,6 +21,14 @@ export interface IUser extends Document {
   isApproved: boolean;
   authenticate(plainPassword: string): boolean;
   securePassword(plainPassword: string): string;
+  educationHistory: Array<{
+    degree: string;
+    college: string;
+    university: string;
+    department: string;
+    startYear: number;
+    endYear?: number;
+  }>;
 }
 
 const userSchema = new Schema<IUser>({
@@ -61,33 +70,37 @@ const userSchema = new Schema<IUser>({
   },
   education: {
     type: String,
-    required: function(this: any) { return this.type === 'candidate'; },
+    required: false,
     trim: true
   },
   college: {
     type: String,
-    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    required: false,
     trim: true
   },
   university: {
     type: String,
-    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    required: false,
     trim: true
   },
   department: {
     type: String,
-    required: function(this: any) { return this.type === 'candidate' || this.type === 'admin'; },
+    required: false,
     trim: true
   },
   course: {
     type: String,
-    required: function(this: any) { return this.type === 'candidate'; },
+    required: false,
     trim: true
   },
   designation: {
     type: String,
-    required: function(this: any) { return this.type === 'admin'; },
+    required: false,
     trim: true
+  },
+  profilePicture: {
+    type: String,
+    default: '',
   },
   upcomingExams: [{
     type: Schema.Types.ObjectId,
@@ -96,7 +109,20 @@ const userSchema = new Schema<IUser>({
   pastExams: [{
     type: Schema.Types.ObjectId,
     ref: 'Exam'
-  }]
+  }],
+  educationHistory: {
+    type: [
+      {
+        degree: { type: String, required: true },
+        college: { type: String, required: true },
+        university: { type: String, required: true },
+        department: { type: String, required: true },
+        startYear: { type: Number, required: true },
+        endYear: { type: Number },
+      }
+    ],
+    default: []
+  }
 }, {
   timestamps: true,
   toJSON: {

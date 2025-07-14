@@ -30,27 +30,33 @@ class UserController extends BaseController<IUser> {
   public updateProfile = async (req: IRequest, res: Response): Promise<Response> => {
     try {
       const userId = req.user?._id;
-      const { name, email, education, college, university, department, course, designation, profilePicture } = req.body;
+      const { name, education, course, designation, profilePicture, userinfo, newDegree } = req.body;
+      // newDegree: { degree, college, university, department, startYear, endYear }
 
-      // Check if email is being changed and if it's already taken
-      if (email) {
-        const existingUser = await User.findOne({ email, _id: { $ne: userId } });
-        if (existingUser) {
-          return this.sendError(res, 'Email is already registered', 400);
-        }
+      // Do not allow email, college, university, department change if already set
+      const user = await User.findById(userId);
+      if (!user) return this.sendError(res, 'User not found', 404);
+
+      // Only allow adding new degree to educationHistory
+      let update: any = { name, education, course, designation, profilePicture, userinfo };
+      if (newDegree && newDegree.degree && newDegree.college && newDegree.university && newDegree.department && newDegree.startYear) {
+        update.$push = { educationHistory: newDegree };
       }
 
-      const user = await User.findByIdAndUpdate(
+      // Do not allow email/college/university/department change if already set
+      // (If you want to allow setting them once if empty, add logic here)
+
+      const updatedUser = await User.findByIdAndUpdate(
         userId,
-        { $set: { name, email, education, college, university, department, course, designation, profilePicture } },
+        update,
         { new: true, runValidators: true }
       );
 
-      if (!user) {
+      if (!updatedUser) {
         return this.sendError(res, 'User not found', 404);
       }
 
-      return this.sendSuccess(res, { user });
+      return this.sendSuccess(res, { user: updatedUser });
     } catch (error) {
       return this.handleError(error, res, 'updateProfile');
     }
