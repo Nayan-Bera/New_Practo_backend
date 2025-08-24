@@ -19,8 +19,7 @@ const connectDB = async () => {
     // Register all models to ensure schemas are initialized
     await import('./models/user.model');
     await import('./models/exam.model');
-    await import('./models/question.model');
-    await import('./models/answer.model');
+
 
   } catch (error) {
     logger.error('MongoDB connection failed:', error);
